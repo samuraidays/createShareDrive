@@ -10,14 +10,13 @@ function createShareDriveFlow(formdata) {
   
   // 同じ名前のドライブ名があるかチェックし、あったら終了する
   var errtx = searchDrive(drivename);
-
-  /*
-  if(errtx.items !== '') {
+  
+  if(errtx.items[0]) {
     errtx = drivename + "ドライブは作成されています！他のドライブ名に変えて申請してください"
     callSlackWebhook(applicant, errtx);
     return;
   }
-*/
+  
   if(external == 'あり') {
     drivename = drivename + '👤';
   }
@@ -119,7 +118,10 @@ function createShareDrive(drivename, requestID) {
 
 // ドライブオブジェクトをゲットする
 function searchDrive(drivename) {
-  var query = 'name="' + drivename + '"';
+  var query01 = 'name="' + drivename + '"';
+  var query02 = 'name="' + drivename + '👤' + '"';
+  var query03 = 'name="' + drivename + '🔓' + '"';
+  var query = query01 + 'or' + query02 + 'or' + query03
   var searchorg = {
     "q": query,
     "useDomainAdminAccess": true,
