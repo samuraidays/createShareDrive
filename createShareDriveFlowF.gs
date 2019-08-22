@@ -1,16 +1,3 @@
-function test() {
-  drivename = 'test-group05' + '👤';
-  var newdrv = searchDrive(drivename);
-  var newdrvid = newdrv.items[0].id;
-  Logger.log(newdrv);
-  Logger.log(newdrvid);
-}
-
-function test2() {
-  var a = '0ACJYv0rySYkjUk9PVA';
-  updateShareDrive(a, true, false, false);
-}
-
 function createShareDriveFlow(formdata) {
 
   var applicant=formdata[1]; // 申請者
@@ -37,21 +24,12 @@ function createShareDriveFlow(formdata) {
   
   // 共有ドライブを作成
   var [errtx, newdrvid] = createShareDrive(drivename, requestID);
-
-  Logger.log(errtx)
-  Logger.log(newdrvid)
   
   // エラーをSlackへ通知
   if(errtx !== 'ok'){
     callSlackWebhook(applicant, errtx);
     return;
   }
-
-  // 作成したドライブのID取得
-  /*
-  var newdrv = searchDrive(drivename);
-  var newdrvid = newdrv.items[0].id;
-  */
   
   // 管理者としてメンバー追加
   var errtx = addManageMember(newmember, newdrvid);
@@ -116,9 +94,9 @@ function createShareDriveFlow(formdata) {
   }
 }
 
-/*
+/*************************************
    以下、各関数の定義
-*/
+*************************************/
 
 //　共有ドライブを作成する関数
 function createShareDrive(drivename, requestID) {
@@ -128,9 +106,6 @@ function createShareDrive(drivename, requestID) {
     }; 
     var newdrv = Drive.Drives.insert(params, requestID);
     var a='ok'
-    Logger.log(newdrv)
-    Logger.log(newdrv.id)
-//    Logger.log(newdrv.items[0].id)
     var newdrvid = newdrv.id
     return [a, newdrvid]
 
