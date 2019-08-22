@@ -1,22 +1,46 @@
+function test() {
+  drivename = 'test-group05' + '👤';
+  var newdrv = searchDrive(drivename);
+  var newdrvid = newdrv.items[0].id;
+  Logger.log(newdrv);
+  Logger.log(newdrvid);
+}
+
+function test2() {
+  var a = '0ACJYv0rySYkjUk9PVA';
+  updateShareDrive(a, true, false, false);
+}
+
 function createShareDriveFlow(formdata) {
 
   var applicant=formdata[1]; // 申請者
   var drivename=formdata[2]; // 作成する共有ドライブ名
   var newmember=formdata[4]; // 管理者として設定するメールアドレス
+  var external=formdata[5]; // 社外ゲストの接続の有無
+  var secinfo=formdata[6]; // 取り扱う情報
   var requestID=getLastRowWithValue(); // 最後の行数をrequestIDに設定
 
   
   // 同じ名前のドライブ名があるかチェックし、あったら終了する
-  var errtx = searchNewDrive(drivename);
-  if(errtx.items[0] !== '') {
+  var errtx = searchDrive(drivename);
+
+  /*
+  if(errtx.items !== '') {
     errtx = drivename + "ドライブは作成されています！他のドライブ名に変えて申請してください"
     callSlackWebhook(applicant, errtx);
     return;
   }
-
+*/
+  if(external == 'あり') {
+    drivename = drivename + '👤';
+  }
+  
   // 共有ドライブを作成
-  var errtx = createShareDrive(drivename, requestID);
+  var [errtx, newdrvid] = createShareDrive(drivename, requestID);
 
+  Logger.log(errtx)
+  Logger.log(newdrvid)
+  
   // エラーをSlackへ通知
   if(errtx !== 'ok'){
     callSlackWebhook(applicant, errtx);
@@ -24,14 +48,60 @@ function createShareDriveFlow(formdata) {
   }
 
   // 作成したドライブのID取得
-  var newdrv = searchNewDrive(drivename);
+  /*
+  var newdrv = searchDrive(drivename);
   var newdrvid = newdrv.items[0].id;
+  */
   
   // 管理者としてメンバー追加
   var errtx = addManageMember(newmember, newdrvid);
   if(errtx !== 'ok'){
     callSlackWebhook(applicant, errtx);
     return;
+  }
+  
+  // 共有ドライブの設定変更
+  // 社外ゲストあり, 制限情報
+  if(external == 'あり' && secinfo == '制限情報'){
+    var errtx = updateShareDrive(newdrvid, false, true, false);
+
+    // エラー時の通知
+    if(errtx !== 'ok'){
+      callSlackWebhook(applicant, errtx);
+      return;
+    }
+  }
+  
+  // 社外ゲストあり, 社内公開可
+  if(external == 'あり' && secinfo == '社内公開可'){
+    var errtx = updateShareDrive(newdrvid, false, false, false);
+
+    // エラー時の通知
+    if(errtx !== 'ok'){
+      callSlackWebhook(applicant, errtx);
+      return;
+    }
+  }
+  
+  // 社外ゲストなし, 制限情報
+  if(external == 'なし' && secinfo == '制限情報'){
+    var errtx = updateShareDrive(newdrvid, true, true, false);
+
+    // エラー時の通知
+    if(errtx !== 'ok'){
+      callSlackWebhook(applicant, errtx);
+      return;
+    }
+  }
+  // 社外ゲストなし, 社内公開可
+  if(external == 'なし' && secinfo == '社内公開可'){
+    var errtx = updateShareDrive(newdrvid, true, false, false);
+
+    // エラー時の通知
+    if(errtx !== 'ok'){
+      callSlackWebhook(applicant, errtx);
+      return;
+    }
   }
   
   // Slackへの通知
@@ -46,6 +116,10 @@ function createShareDriveFlow(formdata) {
   }
 }
 
+/*
+   以下、各関数の定義
+*/
+
 //　共有ドライブを作成する関数
 function createShareDrive(drivename, requestID) {
   try {
@@ -53,16 +127,23 @@ function createShareDrive(drivename, requestID) {
       "name": drivename,
     }; 
     var newdrv = Drive.Drives.insert(params, requestID);
-    return 'ok';
+    var a='ok'
+    Logger.log(newdrv)
+    Logger.log(newdrv.id)
+//    Logger.log(newdrv.items[0].id)
+    var newdrvid = newdrv.id
+    return [a, newdrvid]
+
   } catch(e) {
     // エラーメッセージを返す
     var error = drivename + 'ドライブ作成に失敗しました。このメッセージを#corp_itに投げてください' + '\n' + 'name：'　+ e.name + '\n' + 'message：'　+ e.message
-    return error;
+    var a='NG'
+    return [a, error]
   }
 }
 
 // ドライブオブジェクトをゲットする
-function searchNewDrive(drivename) {
+function searchDrive(drivename) {
   var query = 'name="' + drivename + '"';
   var searchorg = {
     "q": query,
@@ -104,4 +185,28 @@ function getLastRowWithValue() {
   const LastRow = columnBVals.filter(String).length;  //空白を除き、配列の数を取得
 
   return LastRow
+}
+
+// 共有ドライブの設定を変更する関数
+function updateShareDrive(newdrvid, domainonly, driveonly, copy) {
+  try {
+    var params = {
+      "useDomainAdminAccess": true,
+    }; 
+    
+    var options = {
+      "restrictions": {
+        "domainUsersOnly": domainonly,
+        "driveMembersOnly": driveonly,
+        "copyRequiresWriterPermission": copy,
+      }
+    };
+    Drive.Drives.update(options, newdrvid, params)
+    return 'ok';
+  } catch(e) {
+    // エラーメッセージを返す
+    var error = 'ドライブ設定変更に失敗しました。このメッセージを#corp_itに投げてください' + '\n' + 'name：'　+ e.name + '\n' + 'message：'　+ e.message
+    Logger.log(e);
+    return error;
+  }
 }
