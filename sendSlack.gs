@@ -41,8 +41,6 @@ function getSlackUserId(applicant) {
   // APIを実行しユーザリストを取得する
   var res = UrlFetchApp.fetch(slackUserListAPI) 
   var data = JSON.parse(res);  // APIから得られたデータを連想配列に変換する
-  
-  //Logger.log(data.members)
 
   var userid;
   // 取得したユーザリストと申請者メールアドレスを突き合わせる
@@ -54,7 +52,25 @@ function getSlackUserId(applicant) {
       userid = 'none';
     }
   }
-  //Logger.log(userid);
   return userid;
 }
   
+// Slackの#corp_it_internalに通知する
+function sendSlackCoprItInternal(messages) {
+  // webhook設定
+  var sp = PropertiesService.getScriptProperties();
+  var SLACK_WEBHOOK_URL = sp.getProperty('SLACK_WEBHOOK_URL');
+  
+  // 通知するデータ
+  var params = {
+    method: 'post',
+    contentType: 'application/json',
+    payload: JSON.stringify({
+      text: messages,
+      link_names: 1,
+    })
+  };
+  // slack通知
+  var response = UrlFetchApp.fetch(SLACK_WEBHOOK_URL, params);
+  return response;
+}

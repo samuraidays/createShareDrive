@@ -83,12 +83,14 @@ function createShareDriveFlow(formdata) {
   
   // Slackへの通知
   if(errtx == 'ok'){
-    var tx = drivename + '共有ドライブが作成されました！';
+    var tx = applicant + 'さんの申請により、' + drivename + 'の共有ドライブが作成されました！';
     callSlackWebhook(applicant, tx);
+    sendSlackCoprItInternal(tx);
     return;
   } else {
-    var tx = drivename + '共有ドライブの作成に失敗しました！';
+    var tx = applicant + 'さんに申請された、' + drivename + 'の共有ドライブの作成に失敗しました！';
     callSlackWebhook(applicant, tx);
+    sendSlackCoprItInternal(tx);
     return;
   }
 }
@@ -183,7 +185,6 @@ function updateShareDrive(newdrvid, domainonly, driveonly, copy) {
   } catch(e) {
     // エラーメッセージを返す
     var error = 'ドライブ設定変更に失敗しました。このメッセージを#corp_itに投げてください' + '\n' + 'name：'　+ e.name + '\n' + 'message：'　+ e.message
-    Logger.log(e);
     return error;
   }
 }
