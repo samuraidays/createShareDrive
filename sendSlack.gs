@@ -56,10 +56,18 @@ function getSlackUserId(applicant) {
 }
   
 // Slackの#corp_it_internalに通知する
-function sendSlackCoprItInternal(messages) {
+function sendSlackCoprItInternal(messages, base) {
   // webhook設定
   var sp = PropertiesService.getScriptProperties();
   var SLACK_WEBHOOK_URL = sp.getProperty('SLACK_WEBHOOK_URL');
+  
+  // attachment
+  var attachments = [
+    {
+      "color": "#2eb886",
+      "title": base,
+    }
+  ]
   
   // 通知するデータ
   var params = {
@@ -67,6 +75,7 @@ function sendSlackCoprItInternal(messages) {
     contentType: 'application/json',
     payload: JSON.stringify({
       text: messages,
+      attachments: attachments,
       link_names: 1,
     })
   };
