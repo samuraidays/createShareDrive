@@ -17,6 +17,7 @@ function createShareDriveFlow(formdata) {
     return;
   }
   
+  // 社外ゲストありの場合、ドライブ名にアイコンを追加
   if(external == 'あり') {
     drivename = drivename + '👤';
   }
@@ -26,7 +27,7 @@ function createShareDriveFlow(formdata) {
   
   // エラーをSlackへ通知
   if(errtx !== 'ok'){
-    callSlackWebhook(applicant, errtx);
+    callSlackWebhook(applicant, newdrvid);
     return;
   }
   
@@ -84,7 +85,9 @@ function createShareDriveFlow(formdata) {
   // Slackへの通知
   if(errtx == 'ok'){
     var tx = applicant + 'さんの申請により、' + drivename + 'の共有ドライブが作成されました！';
+    // 本人へ通知
     callSlackWebhook(applicant, tx);
+    // #corp_it_internalへ通知
     sendSlackCoprItInternal(tx);
     return;
   } else {
@@ -118,7 +121,7 @@ function createShareDrive(drivename, requestID) {
   }
 }
 
-// ドライブオブジェクトをゲットする
+// 既存のドライブ名を検索する
 function searchDrive(drivename) {
   var query01 = 'name="' + drivename + '"';
   var query02 = 'name="' + drivename + '👤' + '"';
@@ -157,7 +160,7 @@ function addManageMember(newmember, newdrvid) {
   }
 }
 
-// 最後の行数を取得する関数
+// 最後の行数を取得する関数（リクエストIDとして使用する）
 function getLastRowWithValue() {
   const sheet = SpreadsheetApp.getActiveSheet(); 
   const columnBVals = sheet.getRange('A:A').getValues(); // A列「タイムスタンプ」の値を配列で取得

@@ -10,7 +10,7 @@ function callSlackWebhook(applicant, messages) {
   if(suserid !== 'none'){
     suserid = '@' + suserid;
   } else {
-    suserid = '@it'
+    suserid = ''
   }
   
   // 通知するデータ

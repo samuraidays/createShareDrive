@@ -27,6 +27,8 @@ function onFormSubmit(e) {
       var optiontxt = addApplicant + addDrivename + addDesc + addNewmail + addExternal + addInfo
       callSlackWebhook(applicant, basetxt)
       sendSlackCoprItInternal(basetxt, optiontxt)
+      break;
+      
     default:
       break;
   }
