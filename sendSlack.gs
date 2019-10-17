@@ -6,7 +6,7 @@ function callSlackWebhook(applicant, messages) {
   
   // 申請者メールアドレスからSlackIDへ変換
   var suserid = getSlackUserId(applicant);
-  // 申請者メールアドレスがある→@つける、ない→@itへ
+  // 申請者メールアドレスがある→@つける、ない→#corp-itへ
   if(suserid !== 'none'){
     suserid = '@' + suserid;
   } else {
